@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include "BitArray.hpp"
+#include "AP/BitArray.hpp"
 
 using namespace AP;
 
