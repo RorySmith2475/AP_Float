@@ -6,17 +6,40 @@ using namespace AP;
 
 TEST_CASE("Constructors")
 {
-    SECTION("Large float strings")
+    SECTION("Float input")
     {
         auto i = GENERATE(range(-1.0e37f, 1.0e37f, 1.23456789e34f));
 
-        std::string val = std::to_string(i);
-        Float f(val);
+        Float f(i);
 
-        INFO("Input: " << val);
+        INFO("Input: " << i);
         INFO("Result: " << f.toFloat());
-        INFO("Actual: " << std::atof(val.c_str()));
-        REQUIRE(f.toFloat() == Approx(std::atof(val.c_str())));
+        INFO("Actual: " << i);
+        REQUIRE(f.toFloat() == Approx(i));
+    }
+
+    SECTION("Double input")
+    {
+        auto i = GENERATE(range(-1.0e200, 1.0e200, 1.23456789e197));
+
+        Float f(i);
+
+        INFO("Input: " << i);
+        INFO("Result: " << f.toDouble());
+        INFO("Actual: " << i);
+        REQUIRE(f.toDouble() == Approx(i));
+    }
+
+    SECTION("Integer input")
+    {
+        auto i = GENERATE(-55, 55U, 2000UL, -4L);
+
+        Float f(i);
+
+        INFO("Input: " << i);
+        INFO("Result: " << f.toDouble());
+        INFO("Actual: " << i);
+        REQUIRE(f.toDouble() == Approx(static_cast<double>(i)));
     }
     
     SECTION("Invalid Input")

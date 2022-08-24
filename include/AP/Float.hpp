@@ -59,6 +59,14 @@ public:
      */
     inline Float(double input);
 
+    template <typename T>
+    requires(std::is_integral_v<T> && std::is_signed_v<T>)
+    inline Float(T input);
+
+    template <typename T>
+    requires(std::is_integral_v<T> && !std::is_signed_v<T>)
+    inline Float(T input);
+
     /**
      * Constructs object from a string representing a floating point value. Will round
      * if the input can not be represented exactly. The accuracy of the rounded value is
@@ -387,6 +395,26 @@ inline Float::Float(double input)
 
         mShift -= mMantissa.rightAlign();
     }
+}
+
+template <typename T>
+requires(std::is_integral_v<T> && std::is_signed_v<T>)
+inline Float::Float(T input)
+    :   mMantissa(std::abs(input))
+{
+    if(input < 0)
+    {
+        mSign = NEGATIVE;
+    }
+    mShift -= mMantissa.rightAlign();
+}
+
+template <typename T>
+requires(std::is_integral_v<T> && !std::is_signed_v<T>)
+inline Float::Float(T input)
+    :   mMantissa(input)
+{
+    mShift -= mMantissa.rightAlign();
 }
 
 inline Float::Float(std::string_view input)

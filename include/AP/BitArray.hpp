@@ -30,13 +30,7 @@ public:
      * Initialize the object with the value of v
      * @param v Object value
      */
-    explicit inline BitArray(uint32_t v);
-
-    /**
-     * Initialize the object with the value of v
-     * @param v Object value
-     */
-    explicit inline BitArray(uint64_t v);
+    inline BitArray(uint64_t v);
 
     /**
      * Construct the object with the integer value encoded inside sv
@@ -262,15 +256,14 @@ inline BitArray operator*(const BitArray& lhs, const BitArray& rhs);
 inline BitArray operator>>(const BitArray& lhs, uint32_t shift);
 inline BitArray operator<<(const BitArray& lhs, uint32_t shift);
 
-inline BitArray::BitArray(uint32_t v)
-{
-    mBits.at(0U) = v;
-}
-
 inline BitArray::BitArray(uint64_t v)
 {
-    mBits.at(0U) = (v & 0xFFFFFFFFUL);
-    mBits.push_back((v >> 32UL) & 0xFFFFFFFFUL);
+    mBits.at(0U) = (v & 0xFFFFFFFFU);
+    v >>= 32UL;
+    if(v)
+    {
+        mBits.push_back(v & 0xFFFFFFFFU);
+    }
 }
 
 inline BitArray::BitArray(const BitArray& other)
