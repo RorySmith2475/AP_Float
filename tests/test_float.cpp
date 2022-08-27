@@ -13,9 +13,9 @@ TEST_CASE("Constructors")
         Float f(i);
 
         INFO("Input: " << i);
-        INFO("Result: " << f.toFloat());
+        INFO("Result: " << (static_cast<float>(f)));
         INFO("Actual: " << i);
-        REQUIRE(f.toFloat() == Approx(i));
+        REQUIRE(static_cast<float>(f) == Approx(i));
     }
 
     SECTION("Double input")
@@ -25,9 +25,9 @@ TEST_CASE("Constructors")
         Float f(i);
 
         INFO("Input: " << i);
-        INFO("Result: " << f.toDouble());
+        INFO("Result: " << static_cast<double>(f));
         INFO("Actual: " << i);
-        REQUIRE(f.toDouble() == Approx(i));
+        REQUIRE(static_cast<double>(f) == Approx(i));
     }
 
     SECTION("Integer input")
@@ -37,9 +37,9 @@ TEST_CASE("Constructors")
         Float f(i);
 
         INFO("Input: " << i);
-        INFO("Result: " << f.toDouble());
+        INFO("Result: " << static_cast<double>(f));
         INFO("Actual: " << i);
-        REQUIRE(f.toDouble() == Approx(static_cast<double>(i)));
+        REQUIRE(static_cast<double>(f) == Approx(static_cast<double>(i)));
     }
     
     SECTION("Invalid Input")
@@ -90,7 +90,7 @@ TEST_CASE("Addition")
 
             INFO("i: " << i);
             INFO("j: " << j);
-            INFO("result: " << result);
+            INFO("result: " << static_cast<double>(result));
             if(std::isnan(i + j))
             {
                 REQUIRE(result.getState() == Float::ERROR);
@@ -98,7 +98,7 @@ TEST_CASE("Addition")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(result.toFloat() == Approx(i + j));
+                REQUIRE(static_cast<float>(result) == Approx(i + j));
             }
         }
     }
@@ -114,17 +114,17 @@ TEST_CASE("Addition")
             Float f1(i);
             Float f2(j);
 
-            INFO("f1: " << f1);
-            INFO("f2: " << f2);
+            INFO("f1: " << static_cast<double>(f1));
+            INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(f1.toFloat() == Approx(i));
-            REQUIRE(f2.toFloat() == Approx(j));
+            REQUIRE(static_cast<float>(f1) == Approx(i));
+            REQUIRE(static_cast<float>(f2) == Approx(j));
 
             f1 += f2;
-            INFO("result: " << f1);
+            INFO("result: " << static_cast<double>(f1));
             INFO("wanted: " << Float(i + j));
-            REQUIRE(f1.toFloat() == Approx(i + j));
+            REQUIRE(static_cast<float>(f1) == Approx(i + j));
         }
     }    
 }
@@ -142,7 +142,7 @@ TEST_CASE("Subtraction")
             
             INFO("i: " << i);
             INFO("j: " << j);
-            INFO("result: " << result);
+            INFO("result: " << static_cast<double>(result));
             if(std::isnan(i - j))
             {
                 REQUIRE(result.getState() == Float::ERROR);
@@ -150,7 +150,7 @@ TEST_CASE("Subtraction")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(result.toFloat() == Approx(i - j));
+                REQUIRE(static_cast<float>(result) == Approx(i - j));
             }
         }
     }
@@ -165,17 +165,17 @@ TEST_CASE("Subtraction")
             Float f1(i);
             Float f2(j);
 
-            INFO("f1: " << f1);
-            INFO("f2: " << f2);
+            INFO("f1: " << static_cast<double>(f1));
+            INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(f1.toFloat() == Approx(i));
-            REQUIRE(f2.toFloat() == Approx(j));
+            REQUIRE(static_cast<float>(f1) == Approx(i));
+            REQUIRE(static_cast<float>(f2) == Approx(j));
 
             f1 -= f2;
-            INFO("result: " << f1);
+            INFO("result: " << static_cast<double>(f1));
             INFO("wanted: " << Float(i - j));
-            REQUIRE(f1.toFloat() == Approx(i - j));
+            REQUIRE(static_cast<float>(f1) == Approx(i - j));
         }
     }
 }
@@ -193,7 +193,7 @@ TEST_CASE("Multiplication")
             
             INFO("i: " << i);
             INFO("j: " << j);
-            INFO("result: " << result);
+            INFO("result: " << static_cast<double>(result));
             if(std::isnan(i * j))
             {
                 REQUIRE(result.getState() == Float::ERROR);
@@ -201,7 +201,7 @@ TEST_CASE("Multiplication")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(result.toFloat() == Approx(i * j));
+                REQUIRE(static_cast<float>(result) == Approx(i * j));
             }
         }
     }
@@ -216,17 +216,17 @@ TEST_CASE("Multiplication")
             Float f1(i);
             Float f2(j);
 
-            INFO("f1: " << f1);
-            INFO("f2: " << f2);
+            INFO("f1: " << static_cast<double>(f1));
+            INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(f1.toFloat() == Approx(i));
-            REQUIRE(f2.toFloat() == Approx(j));
+            REQUIRE(static_cast<float>(f1) == Approx(i));
+            REQUIRE(static_cast<float>(f2) == Approx(j));
 
             f1 *= f2;
-            INFO("result: " << f1);
-            INFO("wanted: " << Float(i * j).toFloat() << std::scientific);
-            REQUIRE(f1.toFloat() == Approx(i * j));
+            INFO("result: " << static_cast<double>(f1));
+            INFO("wanted: " << static_cast<double>(Float(i * j)) << std::scientific);
+            REQUIRE(static_cast<float>(f1) == Approx(i * j));
         }
     }
 }
@@ -244,7 +244,7 @@ TEST_CASE("Division")
             
             INFO("i: " << i);
             INFO("j: " << j);
-            INFO("result: " << result);
+            INFO("result: " << static_cast<double>(result));
             if(std::isnan(i / j))
             {
                 REQUIRE(result.getState() == Float::ERROR);
@@ -252,7 +252,7 @@ TEST_CASE("Division")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(result.toFloat() == Approx(i / j));
+                REQUIRE(static_cast<float>(result) == Approx(i / j));
             }
         }
     }
@@ -267,17 +267,17 @@ TEST_CASE("Division")
             Float f1(i);
             Float f2(j);
 
-            INFO("f1: " << f1);
-            INFO("f2: " << f2);
+            INFO("f1: " << static_cast<double>(f1));
+            INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(f1.toFloat() == Approx(i));
-            REQUIRE(f2.toFloat() == Approx(j));
+            REQUIRE(static_cast<float>(f1) == Approx(i));
+            REQUIRE(static_cast<float>(f2) == Approx(j));
 
             f1 /= f2;
-            INFO("result: " << f1);
-            INFO("wanted: " << Float(i / j).toFloat() << std::scientific);
-            REQUIRE(f1.toFloat() == Approx(i / j));
+            INFO("result: " << static_cast<double>(f1));
+            INFO("wanted: " << static_cast<double>(Float(i / j)) << std::scientific);
+            REQUIRE(static_cast<float>(f1) == Approx(i / j));
         }
     }
 
@@ -289,7 +289,7 @@ TEST_CASE("Division")
         Float f1(1.23414321432132414321431243121342e280);
         meter.measure([&]{
             f1 = AP::sqrt(f1).value();
-            return f1.toDouble();
+            return static_cast<double>(f1);
         });
     };
     }

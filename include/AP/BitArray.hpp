@@ -91,6 +91,8 @@ public:
     inline size_t divide(const BitArray& denominator, uint32_t accuracy);
     inline size_t divide(uint32_t denominator, uint32_t accuracy);
 
+    inline BitArray divide_with_remainder(BitArray denominator);
+
     /**
      * Bit shift operator. Modify the current object by bit shifting
      * it to the right by other bits
@@ -155,6 +157,8 @@ public:
      * @param[in] n The number of bits to be inverted.
      */
     inline void invert(uint32_t n);
+
+    inline std::pair<BitArray, BitArray> split(size_t index) const;
 
     /**
      * Set the bit at index to either 1 or 0
@@ -255,6 +259,8 @@ inline BitArray operator-(const BitArray& lhs, const BitArray& rhs);
 inline BitArray operator*(const BitArray& lhs, const BitArray& rhs);
 inline BitArray operator>>(const BitArray& lhs, uint32_t shift);
 inline BitArray operator<<(const BitArray& lhs, uint32_t shift);
+
+inline std::string to_string(BitArray b);
 
 inline BitArray::BitArray(uint64_t v)
 {
@@ -522,6 +528,35 @@ inline size_t BitArray::divide(uint32_t denominator, uint32_t accuracy)
     return divide(BitArray(denominator), accuracy);
 }
 
+inline BitArray BitArray::divide_with_remainder(BitArray denominator)
+{
+    if(denominator == 0U)
+    {
+        return 0U;
+    }
+
+    std::size_t shift = 0;
+    while(*this > denominator)
+    { 
+        denominator <<= 1U;
+        ++shift;
+    }
+
+    BitArray remainder;
+    do
+    {
+        if(*this >= denominator)
+        {
+            remainder.setBit(shift, 1U);
+            *this -= denominator;
+        }
+        denominator >>= 1U;
+    }
+    while(shift--);
+
+    return remainder;
+}
+
 inline BitArray& BitArray::operator>>=(uint32_t n)
 {
     // shift by entire BLOCK
@@ -530,9 +565,6 @@ inline BitArray& BitArray::operator>>=(uint32_t n)
     {
         if (blocks >= mBits.size())
         {
-            // std::fill(mBits.begin(), mBits.end(), 0U);
-            // mBits.erase(mBits.begin(), mBits.begin() + (mBits.size() - 1U));
-            // std::fill(mBits.begin(), mBits.end(), 0U);
             std::fill(mBits.begin(), mBits.end(), 0U);
         }
         else
@@ -680,6 +712,40 @@ inline void BitArray::invert(uint32_t digits)
     }
 }
 
+inline std::pair<BitArray, BitArray> BitArray::split(size_t index) const
+{
+    if(index == 0U)
+    {
+        return {0U, *this};
+    }
+    else if(index >= log2(*this))
+    {
+        return {*this, 0U};
+    }
+
+    const size_t blocks = static_cast<size_t>(index / 32.0);
+    const size_t remainder = index % 32U;
+    BitArray msb, lsb;
+
+    lsb.mBits = std::vector<BLOCK>(mBits.begin(), mBits.begin() + blocks);
+
+    if(blocks < (mBits.size() - 1U))
+    {
+        msb.mBits = std::vector<BLOCK>(mBits.begin() + blocks, mBits.end());
+    }
+
+    if(remainder)
+    {
+        lsb.mBits.push_back(mBits.at(blocks) & ((1U << remainder) - 1U));
+        msb <<= (32U - remainder);
+        msb.mBits.at(0U) |= (mBits.at(blocks) & (((1U << (32U - remainder)) - 1U) << remainder)) >> remainder;
+    }
+
+    msb.reduce();
+    lsb.reduce();
+    return {msb, lsb};
+}
+
 inline void BitArray::setBit(size_t index, uint8_t value)
 {
     const size_t blocks = static_cast<size_t>(index / 32.0);
@@ -775,10 +841,7 @@ inline void BitArray::reduce()
 
 inline std::ostream& operator<<(std::ostream& os, const BitArray& b)
 {
-    for(int32_t i = b.mBits.size() - 1; i >= 0; --i)
-    {
-        os << std::bitset<32U>(b.mBits.at(i)) << " ";
-    }
+    os << to_string(b);
     return os;
 }
 
@@ -810,32 +873,43 @@ inline uint64_t log2(const BitArray& b)
 
 inline BitArray operator+(const BitArray& lhs, const BitArray& rhs)
 {
-    BitArray tmp = lhs;
-    return (tmp += rhs);
+    return (BitArray(lhs) += rhs);
 }
 
 inline BitArray operator-(const BitArray& lhs, const BitArray& rhs)
 {
-    BitArray tmp = lhs;
-    return (tmp -= rhs);
+    return (BitArray(lhs) -= rhs);
 }
 
 inline BitArray operator*(const BitArray& lhs, const BitArray& rhs)
 {
-    BitArray tmp = lhs;
-    return (tmp *= rhs);
+    return (BitArray(lhs) *= rhs);
 }
 
 inline BitArray operator<<(const BitArray& lhs, uint32_t n)
 {
-    BitArray tmp = lhs;
-    return (tmp <<= n);
+    return (BitArray(lhs) <<= n);
 }
 
 inline BitArray operator>>(const BitArray& lhs, uint32_t n)
 {
-    BitArray tmp = lhs;
-    return (tmp >>= n);
+    return (BitArray(lhs) >>= n);
+}
+
+inline std::string to_string(BitArray b)
+{
+    std::string result;
+    do
+    {
+        const auto next = b.divide_with_remainder(10U);
+        const char digit_value = static_cast<char>(b.size() ? b.getBlock(0) : 0);
+        result.push_back('0' + digit_value);
+        b = next;
+    }
+    while(b != 0U);
+
+    std::reverse(result.begin(), result.end());
+    return result;
 }
 
 }
