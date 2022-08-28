@@ -243,7 +243,7 @@ private:
  * @param b The BitArray to take the log10 of
  * @return uint64_t Rounded result
  */
-inline uint32_t log10(const BitArray& b);
+constexpr uint32_t log10(const BitArray& b);
 
 /**
  * Takes the rounded up log base 2 of b. Ie, returns the position
@@ -252,7 +252,7 @@ inline uint32_t log10(const BitArray& b);
  * @param b The BitArray to take the log2 of
  * @return uint64_t Rounded result
  */
-inline uint32_t log2(const BitArray& b);
+constexpr uint32_t log2(const BitArray& b);
 
 inline BitArray operator+(const BitArray& lhs, const BitArray& rhs);
 inline BitArray operator-(const BitArray& lhs, const BitArray& rhs);
@@ -329,6 +329,7 @@ inline BitArray& BitArray::operator+=(const BitArray& other)
 
     uint64_t overflow = 0U;
     uint32_t i;
+    
     for(i = 0U; i < std::min(mBits.size(), other.mBits.size()); ++i)
     {
         overflow = static_cast<uint64_t>(mBits.at(i)) + static_cast<uint64_t>(other.mBits.at(i)) + (overflow >> 32U);
@@ -842,7 +843,7 @@ inline std::ostream& operator<<(std::ostream& os, const BitArray& b)
     return os;
 }
 
-inline uint32_t log10(const BitArray& b)
+constexpr uint32_t log10(const BitArray& b)
 {
     // Taken from https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10
     constexpr uint32_t const powersOf10[] = 
@@ -855,7 +856,7 @@ inline uint32_t log10(const BitArray& b)
     return v - static_cast<uint32_t>(b < powersOf10[v]);
 }
 
-inline uint32_t log2(const BitArray& b)
+constexpr uint32_t log2(const BitArray& b)
 {
     if(b == 0U) [[unlikely]]
     {

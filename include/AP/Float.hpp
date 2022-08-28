@@ -23,7 +23,7 @@ namespace AP
  **************************************************/
 static constexpr size_t CONSTRUCTOR_MAX_ITERATIONS = 20U;
 static constexpr size_t DIVISION_ACCURACY = 50U; // Number of decimal digits to include
-static constexpr size_t SQRT_MAX_ITERATIONS = 100U; // Number of iterations performed in the sqrt function
+static constexpr size_t SQRT_ACCURACY_INCREASE_RATIO = 4U; // By what multiple can the objects size increase during the sqrt algorithm
 static constexpr double SQRT_ACCURACY = std::numeric_limits<double>::min();
 
 /**
@@ -99,7 +99,7 @@ public:
      * 
      * @return The ordering of *this <=> other, either less, greater, equal, or unordered
      */
-    inline std::partial_ordering operator<=>(const Float& other) const;
+    constexpr std::partial_ordering operator<=>(const Float& other) const;
 
     /**
      * Determines if *this == other
@@ -121,7 +121,7 @@ public:
      */
     template <typename T>
     requires(!std::is_same_v<T, Float>)
-    inline std::partial_ordering operator<=>(const T& other) const;
+    constexpr std::partial_ordering operator<=>(const T& other) const;
 
     /**
      * Determines if *this == other
@@ -288,7 +288,7 @@ private:
     int32_t shiftToExponent() const;
 
     friend std::ostream& operator<<(std::ostream&, const Float&);
-    friend inline Float abs(Float&&);
+    friend inline Float abs(Float);
     friend inline std::optional<Float> sqrt(const Float&);
     friend inline std::string to_string(const Float&, size_t);
 };
@@ -299,8 +299,7 @@ private:
  * @param f Float object to take the absolute value of
  * @return Absolute value 
  */
-inline Float abs(const Float& f);
-inline Float abs(Float&& f);
+inline Float abs(Float f);
 
 /**
  * Computes the approximate square root of teh Float object f.
@@ -524,7 +523,7 @@ inline Float::Float(std::string_view input)
     mShift -= mMantissa.rightAlign();
 }
 
-inline std::partial_ordering Float::operator<=>(const Float& other) const
+constexpr std::partial_ordering Float::operator<=>(const Float& other) const
 {
     if((mState == ERROR) || (other.mState == ERROR))
     {
@@ -591,7 +590,7 @@ constexpr bool Float::operator==(const T& other) const
 
 template <typename T>
 requires(!std::is_same_v<T, Float>)
-inline std::partial_ordering Float::operator<=>(const T& other) const
+constexpr std::partial_ordering Float::operator<=>(const T& other) const
 {
     return (*this <=> Float(other));
 }
@@ -1029,12 +1028,7 @@ inline std::ostream& operator<<(std::ostream& os, const Float& f)
     return os;
 }
 
-inline Float abs(const Float& f)
-{
-    return abs(Float(f));
-}
-
-inline Float abs(Float&& f)
+inline Float abs(Float f)
 {
     f.mSign = Float::POSITIVE;
     return f;
@@ -1048,15 +1042,21 @@ inline std::optional<Float> sqrt(const Float& f)
     }
 
     Float curr = f;
+    const size_t max_size = f.mMantissa.size() * SQRT_ACCURACY_INCREASE_RATIO;
 
-    size_t i;
-    for(i = 0; i < SQRT_MAX_ITERATIONS; ++i)
+    while(true)
     {
         const Float next = curr - (((curr * curr) - f) / (curr * 2.0));
+
         if(abs(abs(next) - abs(curr)) < SQRT_ACCURACY)
         {
             break;
         }
+        else if(next.mMantissa.size() > max_size)
+        {
+            break;
+        }
+
         curr = next;
     }
 

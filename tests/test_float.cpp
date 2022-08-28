@@ -6,10 +6,6 @@ using namespace AP;
 
 TEST_CASE("Constructors")
 {
-
-    Float a(-3.74074e+199);
-    REQUIRE(static_cast<double>(a) == -3.74074e+199);
-
     SECTION("Float input")
     {
         auto i = GENERATE(range(-1.0e37f, 1.0e37f, 1.23456789e34f));
@@ -282,26 +278,26 @@ TEST_CASE("Division")
             REQUIRE(static_cast<double>(f1) == Approx(i / j));
         }
     }
+}
 
 #ifdef CATCH_CONFIG_ENABLE_BENCHMARKING
-    SECTION("benchmark")
+TEST_CASE("Benchmarks")
+{
+    Float f1(1.0);
+    Float f2(123456789.123456789);
+
+    BENCHMARK("factorial")
     {
-        Float f1(1.0);
-        Float f2(123456789.123456789);
-
-        BENCHMARK("factorial")
+        for(auto i = 0U; i < 200U; ++i)
         {
-            for(auto i = 0U; i < 200U; ++i)
-            {
-                f1 *= i;
-            }
-            return static_cast<double>(f1);
-        };
+            f1 *= i;
+        }
+        return static_cast<double>(f1);
+    };
 
-        BENCHMARK("to_string")
-        {
-            return to_string(f2);
-        };
-    }
-#endif
+    BENCHMARK("to_string")
+    {
+        return to_string(f2);
+    };
 }
+#endif
