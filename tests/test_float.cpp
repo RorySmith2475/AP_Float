@@ -1,4 +1,4 @@
-// #define CATCH_CONFIG_ENABLE_BENCHMARKING
+#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch.hpp>
 #include "AP/Float.hpp"
 
@@ -6,6 +6,10 @@ using namespace AP;
 
 TEST_CASE("Constructors")
 {
+
+    Float a(-3.74074e+199);
+    REQUIRE(static_cast<double>(a) == -3.74074e+199);
+
     SECTION("Float input")
     {
         auto i = GENERATE(range(-1.0e37f, 1.0e37f, 1.23456789e34f));
@@ -14,7 +18,6 @@ TEST_CASE("Constructors")
 
         INFO("Input: " << i);
         INFO("Result: " << (static_cast<float>(f)));
-        INFO("Actual: " << i);
         REQUIRE(static_cast<float>(f) == Approx(i));
     }
 
@@ -26,7 +29,6 @@ TEST_CASE("Constructors")
 
         INFO("Input: " << i);
         INFO("Result: " << static_cast<double>(f));
-        INFO("Actual: " << i);
         REQUIRE(static_cast<double>(f) == Approx(i));
     }
 
@@ -98,7 +100,7 @@ TEST_CASE("Addition")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(static_cast<float>(result) == Approx(i + j));
+                REQUIRE(static_cast<double>(result) == Approx(i + j));
             }
         }
     }
@@ -118,13 +120,13 @@ TEST_CASE("Addition")
             INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(static_cast<float>(f1) == Approx(i));
-            REQUIRE(static_cast<float>(f2) == Approx(j));
+            REQUIRE(static_cast<double>(f1) == Approx(i));
+            REQUIRE(static_cast<double>(f2) == Approx(j));
 
             f1 += f2;
             INFO("result: " << static_cast<double>(f1));
             INFO("wanted: " << Float(i + j));
-            REQUIRE(static_cast<float>(f1) == Approx(i + j));
+            REQUIRE(static_cast<double>(f1) == Approx(i + j));
         }
     }    
 }
@@ -133,10 +135,10 @@ TEST_CASE("Subtraction")
 {
     SECTION("Edge cases")
     {
-        auto i = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
+        auto i = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
         SECTION("")
         {
-            auto j = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
+            auto j = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
 
             auto result = Float(i) - Float(j);
             
@@ -150,7 +152,7 @@ TEST_CASE("Subtraction")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(static_cast<float>(result) == Approx(i - j));
+                REQUIRE(static_cast<double>(result) == Approx(i - j));
             }
         }
     }
@@ -169,13 +171,13 @@ TEST_CASE("Subtraction")
             INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(static_cast<float>(f1) == Approx(i));
-            REQUIRE(static_cast<float>(f2) == Approx(j));
+            REQUIRE(static_cast<double>(f1) == Approx(i));
+            REQUIRE(static_cast<double>(f2) == Approx(j));
 
             f1 -= f2;
             INFO("result: " << static_cast<double>(f1));
             INFO("wanted: " << Float(i - j));
-            REQUIRE(static_cast<float>(f1) == Approx(i - j));
+            REQUIRE(static_cast<double>(f1) == Approx(i - j));
         }
     }
 }
@@ -184,10 +186,10 @@ TEST_CASE("Multiplication")
 {
     SECTION("Edge cases")
     {
-        auto i = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
+        auto i = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
         SECTION("")
         {
-            auto j = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
+            auto j = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
 
             auto result = Float(i) * Float(j);
             
@@ -201,7 +203,7 @@ TEST_CASE("Multiplication")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(static_cast<float>(result) == Approx(i * j));
+                REQUIRE(static_cast<double>(result) == Approx(i * j));
             }
         }
     }
@@ -220,13 +222,13 @@ TEST_CASE("Multiplication")
             INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(static_cast<float>(f1) == Approx(i));
-            REQUIRE(static_cast<float>(f2) == Approx(j));
+            REQUIRE(static_cast<double>(f1) == Approx(i));
+            REQUIRE(static_cast<double>(f2) == Approx(j));
 
             f1 *= f2;
             INFO("result: " << static_cast<double>(f1));
             INFO("wanted: " << static_cast<double>(Float(i * j)) << std::scientific);
-            REQUIRE(static_cast<float>(f1) == Approx(i * j));
+            REQUIRE(static_cast<double>(f1) == Approx(i * j));
         }
     }
 }
@@ -235,10 +237,10 @@ TEST_CASE("Division")
 {
     SECTION("Edge cases")
     {
-        auto i = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
+        auto i = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
         SECTION("")
         {
-            auto j = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<float>::infinity(), -std::numeric_limits<float>::infinity());
+            auto j = GENERATE(0.0, -0.0, 1234.5678, -1234.5678, std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity());
 
             auto result = Float(i) / Float(j);
             
@@ -252,7 +254,7 @@ TEST_CASE("Division")
             else
             {
                 REQUIRE(result.getState() != Float::ERROR);
-                REQUIRE(static_cast<float>(result) == Approx(i / j));
+                REQUIRE(static_cast<double>(result) == Approx(i / j));
             }
         }
     }
@@ -271,27 +273,35 @@ TEST_CASE("Division")
             INFO("f2: " << static_cast<double>(f2));
             REQUIRE(f1.getState() == Float::NORMAL);
             REQUIRE(f2.getState() == Float::NORMAL);
-            REQUIRE(static_cast<float>(f1) == Approx(i));
-            REQUIRE(static_cast<float>(f2) == Approx(j));
+            REQUIRE(static_cast<double>(f1) == Approx(i));
+            REQUIRE(static_cast<double>(f2) == Approx(j));
 
             f1 /= f2;
             INFO("result: " << static_cast<double>(f1));
             INFO("wanted: " << static_cast<double>(Float(i / j)) << std::scientific);
-            REQUIRE(static_cast<float>(f1) == Approx(i / j));
+            REQUIRE(static_cast<double>(f1) == Approx(i / j));
         }
     }
 
 #ifdef CATCH_CONFIG_ENABLE_BENCHMARKING
     SECTION("benchmark")
     {
-    BENCHMARK_ADVANCED("sqrt")(Catch::Benchmark::Chronometer meter)
-    {
-        Float f1(1.23414321432132414321431243121342e280);
-        meter.measure([&]{
-            f1 = AP::sqrt(f1).value();
+        Float f1(1.0);
+        Float f2(123456789.123456789);
+
+        BENCHMARK("factorial")
+        {
+            for(auto i = 0U; i < 200U; ++i)
+            {
+                f1 *= i;
+            }
             return static_cast<double>(f1);
-        });
-    };
+        };
+
+        BENCHMARK("to_string")
+        {
+            return to_string(f2);
+        };
     }
 #endif
 }

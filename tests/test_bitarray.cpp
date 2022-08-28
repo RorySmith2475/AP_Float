@@ -5,6 +5,22 @@ using namespace AP;
 
 TEST_CASE("Comparison Operators")
 {
+    // SECTION("log2")
+    // {
+    //     // auto i = GENERATE(range(0UL, 21474836474843004UL, 214748364734UL));
+    //     auto i = GENERATE(range(0UL, 12345UL, 1UL));
+    //     SECTION("")
+    //     {
+    //         auto wanted = log2_v1(BitArray(i));
+    //         auto result = log2(BitArray(i));
+    //         INFO("input: " << i);
+    //         INFO("wanted: " << wanted);
+    //         INFO("result: " << result);
+    //         REQUIRE(wanted == result);
+    //     }
+    //     // std::cout << "AAAAA: " << log2(BitArray(3)) << std::endl;
+    // }
+
     SECTION("Compare against primitive types")
     {
         REQUIRE(BitArray("0") == 0);

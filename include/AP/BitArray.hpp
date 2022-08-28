@@ -243,7 +243,7 @@ private:
  * @param b The BitArray to take the log10 of
  * @return uint64_t Rounded result
  */
-inline uint64_t log10(const BitArray& b);
+inline uint32_t log10(const BitArray& b);
 
 /**
  * Takes the rounded up log base 2 of b. Ie, returns the position
@@ -252,7 +252,7 @@ inline uint64_t log10(const BitArray& b);
  * @param b The BitArray to take the log2 of
  * @return uint64_t Rounded result
  */
-inline uint64_t log2(const BitArray& b);
+inline uint32_t log2(const BitArray& b);
 
 inline BitArray operator+(const BitArray& lhs, const BitArray& rhs);
 inline BitArray operator-(const BitArray& lhs, const BitArray& rhs);
@@ -794,7 +794,6 @@ inline size_t BitArray::rightAlign()
     {
         ++empty_blocks;
     }
-    *this >>= (empty_blocks * 32U);
 
     // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightMultLookup
     constexpr uint8_t const multiplyDeBruijnBitPosition[32] = 
@@ -802,10 +801,9 @@ inline size_t BitArray::rightAlign()
         0U, 1U, 28U, 2U, 29U, 14U, 24U, 3U, 30U, 22U, 20U, 15U, 25U, 17U, 4U, 8U, 
         31U, 27U, 13U, 23U, 21U, 19U, 16U, 7U, 26U, 12U, 18U, 6U, 11U, 5U, 10U, 9U
     };
-    const uint8_t shift = multiplyDeBruijnBitPosition[((uint32_t)((mBits.at(0U) & -mBits.at(0U)) * 0x077CB531U)) >> 27];
+    const uint8_t shift = multiplyDeBruijnBitPosition[((uint32_t)((mBits.at(empty_blocks) & -mBits.at(empty_blocks)) * 0x077CB531U)) >> 27];
     
-    *this >>= shift;
-
+    *this >>= (shift + (empty_blocks * 32U));
     reduce();
 
     return shift + (empty_blocks * 32U);
@@ -820,20 +818,19 @@ inline BitArray::BLOCK BitArray::getBlock(size_t index) const
 inline void BitArray::reduce()
 {
     std::size_t empty_blocks = 0U;
-    for(int32_t i = mBits.size() - 1; i > 0; --i)
-    {
-        if(mBits.at(i) == 0U)
+    for (auto it = mBits.rbegin(); it != (mBits.rend() - 1U); ++it)
+    { 
+        if(*it == 0U)
         {
             ++empty_blocks;
-            // mBits.pop_back();
         }
         else
         {
             break;
         }
-    }
+    } 
 
-    if(empty_blocks)
+    if (empty_blocks)
     {
         mBits.erase(mBits.begin() + mBits.size() - empty_blocks, mBits.begin() + mBits.size());
     }
@@ -845,7 +842,7 @@ inline std::ostream& operator<<(std::ostream& os, const BitArray& b)
     return os;
 }
 
-inline uint64_t log10(const BitArray& b)
+inline uint32_t log10(const BitArray& b)
 {
     // Taken from https://graphics.stanford.edu/~seander/bithacks.html#IntegerLog10
     constexpr uint32_t const powersOf10[] = 
@@ -854,21 +851,36 @@ inline uint64_t log10(const BitArray& b)
         1000000U, 10000000U, 100000000U, 1000000000U
     };
 
-    const uint64_t tmp = (log2(b) + 1U) * 1233U >> 12U;
-    return tmp - static_cast<uint64_t>(b < powersOf10[tmp]);
+    const uint32_t v = (log2(b) + 1U) * 1233U >> 12U;
+    return v - static_cast<uint32_t>(b < powersOf10[v]);
 }
 
-inline uint64_t log2(const BitArray& b)
+inline uint32_t log2(const BitArray& b)
 {
-    uint64_t result = (b.size() - 1U) * 32U;
-    uint32_t tmp = b.getBlock(b.size() - 1U);
-    while(tmp != 0U)
+    if(b == 0U) [[unlikely]]
     {
-        ++result;
-        tmp >>= 1U;
+        return 0U;
+    }
+    else if(b == 1U) [[unlikely]]
+    {
+        return 1U;
     }
 
-    return result;
+    // Taken from https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogDeBruijn
+    constexpr uint32_t MultiplyDeBruijnBitPosition[32U] = 
+    {
+        0U, 9U, 1U, 10U, 13U, 21U, 2U, 29U, 11U, 14U, 16U, 18U, 22U, 25U, 3U, 30U,
+        8U, 12U, 20U, 28U, 15U, 17U, 24U, 7U, 19U, 27U, 23U, 6U, 26U, 5U, 4U, 31U
+    };
+
+    uint32_t v = b.back();
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+
+    return 1U + ((b.size() - 1U) * 32U) + MultiplyDeBruijnBitPosition[(v * 0x07C4ACDDU) >> 27U];
 }
 
 inline BitArray operator+(const BitArray& lhs, const BitArray& rhs)

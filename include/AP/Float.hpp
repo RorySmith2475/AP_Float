@@ -194,21 +194,12 @@ public:
      * @return float value 
      */
     inline operator float() const;
-    inline operator float();
 
     /**
      * Casts *this to the approximate double value, potentially loosing precision
      * @return double value 
      */
     inline operator double() const;
-    inline operator double();
-
-    /**
-     * Casts *this to the approximate int value, likely loosing precision
-     * @return int value
-     */
-    inline operator int() const;
-    inline operator int();
 
     inline void clear()
     {
@@ -714,9 +705,9 @@ inline Float& Float::operator*=(const Float& other)
     {
         mShift += other.mShift;
         mMantissa *= other.mMantissa;
-        // mShift -= mMantissa.rightAlign();
+        mShift -= mMantissa.rightAlign();
     }
-    else  [[unlikely]]
+    else [[unlikely]]
     {
         clear();
         mState = INF;
@@ -777,11 +768,6 @@ inline Float& Float::operator/=(Float&& denominator)
 
 inline Float::operator float() const
 {
-    return *this;
-}
-
-inline Float::operator float()
-{
     if(mState == ERROR) [[unlikely]]
     {
         return std::numeric_limits<float>::signaling_NaN();
@@ -808,15 +794,14 @@ inline Float::operator float()
         return -std::numeric_limits<float>::infinity();
     }
 
-    const size_t leftShift = mMantissa.leftAlign();
-    uint32_t result = 0U;
-
-    mMantissa <<= 1U;
+    const uint32_t shift = 33U - std::log2(mMantissa.back());
+    uint32_t result = static_cast<uint32_t>(mMantissa.back() << shift);
     if(mMantissa.size() > 1U)
     {
-        result = (mMantissa.getBlock(mMantissa.size() - 2U) >> 9U);
+        result |= mMantissa.getBlock(mMantissa.size() - 2U) >> (32U - shift);
     }
-    mMantissa >>= (leftShift + 1U);
+    result >>= 9U;
+
 
     if(log2(mMantissa) != 0U)
     {
@@ -831,11 +816,6 @@ inline Float::operator float()
 
 inline Float::operator double() const
 {
-    return *this;
-}
-
-inline Float::operator double()
-{
     if(mState == ERROR) [[unlikely]]
     {
         return std::numeric_limits<double>::signaling_NaN();
@@ -848,7 +828,7 @@ inline Float::operator double()
         }
         else
         {
-            return 0.0;
+            return -std::numeric_limits<double>::infinity();
         }
     }
 
@@ -861,21 +841,19 @@ inline Float::operator double()
     {
         return 0.0;
     }
-    
-    const size_t leftShift = mMantissa.leftAlign();
-    uint64_t result = 0U;
 
-    mMantissa <<= 1U;
+    const uint64_t shift = 33UL - std::log2(mMantissa.back());
+    uint64_t result = static_cast<uint64_t>(mMantissa.back()) << (shift + 32UL);
     if(mMantissa.size() > 2U)
     {
-        result = (static_cast<uint64_t>(mMantissa.getBlock(mMantissa.size() - 2U)) << 20UL);
-        result |= (mMantissa.getBlock(mMantissa.size() - 3U) >> 12UL);
+        result |= static_cast<uint64_t>(mMantissa.getBlock(mMantissa.size() - 2UL)) << shift;
+        result |= mMantissa.getBlock(mMantissa.size() - 3UL) >> (32UL - shift);
     }
-    else if (mMantissa.size() > 1U)
+    else if(mMantissa.size() > 1U)
     {
-        result = static_cast<uint64_t>(mMantissa.getBlock(mMantissa.size() - 2U)) << 20UL;
+        result |= static_cast<uint64_t>(mMantissa.getBlock(mMantissa.size() - 2UL)) << shift;
     }
-    mMantissa >>= (leftShift + 1U);
+    result >>= 12UL;
 
     if(log2(mMantissa) != 0U)
     {
@@ -886,35 +864,6 @@ inline Float::operator double()
     double f;
     memcpy(&f, &result, sizeof(f));
     return f;
-}
-
-inline Float::operator int() const
-{
-    return *this;
-}
-
-inline Float::operator int()
-{
-    int result = 0;
-    if(mShift < 0)
-    {
-        mMantissa <<= std::abs(mShift);
-        result = mMantissa.getBlock(0U);
-        mMantissa >>= std::abs(mShift);
-    }
-    else
-    {
-        mMantissa >>= mShift;
-        result = mMantissa.getBlock(0U);
-        mMantissa <<= mShift;
-    }
-
-    if(mSign == NEGATIVE)
-    {
-        result *= -1;
-    }
-
-    return result;
 }
 
 constexpr std::tuple<std::string_view, std::string_view, std::string_view, Float::sign_t>
