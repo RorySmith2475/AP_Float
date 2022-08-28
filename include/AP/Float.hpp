@@ -569,16 +569,27 @@ constexpr std::partial_ordering Float::operator<=>(const Float& other) const
 
 constexpr bool Float::operator==(const Float& other) const
 {
-    if((mState == ERROR) || (other.mState == ERROR))
+    if((mState == ERROR) || (other.mState == ERROR)) [[unlikely]]
     {
         return false;
     }
 
-    return
-        (mState == other.mState) &&
-        (mSign == other.mSign) &&
-        (mShift == other.mShift) &&
-        (mMantissa == other.mMantissa);
+    if((other.mMantissa == 0U) && (other.mShift == 0U)) [[unlikely]]
+    {
+        return
+            (mState == other.mState) &&
+            (mShift == 0U) &&
+            (mMantissa == 0U);
+    }
+    else
+    {
+        return
+            (mState == other.mState) &&
+            (mSign == other.mSign) &&
+            (mShift == other.mShift) &&
+            (mMantissa == other.mMantissa);
+    }
+
 }
 
 template <typename T>
@@ -690,8 +701,8 @@ inline Float& Float::operator*=(const Float& other)
         mState = ERROR;
         return *this;
     }
-    else if(((mState == INF) && ((other == 0.0) || (other == -0.0)))
-        || (((*this == 0.0) || (*this == -0.0)) && (other.mState == INF))) [[unlikely]]
+    else if(((mState == INF) && (other == 0.0))
+        || ((*this == 0.0) && (other.mState == INF))) [[unlikely]]
     {
         clear();
         mState = ERROR;

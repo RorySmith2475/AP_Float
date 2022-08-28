@@ -322,7 +322,7 @@ inline BitArray::BitArray(const std::string_view s)
 
 inline BitArray& BitArray::operator+=(const BitArray& other)
 {
-    if(*this == other)
+    if(*this == other) [[unlikely]]
     {
         return (*this <<= 1U);
     }
@@ -382,11 +382,11 @@ inline BitArray& BitArray::operator+=(uint32_t other)
 
 inline BitArray& BitArray::operator-=(const BitArray& other)
 {
-    if(*this == other)
+    if(*this == other) [[unlikely]]
     {
         std::fill(mBits.begin(), mBits.end(), 0U);
     }
-    else if(*this == 0U)
+    else if(*this == 0U) [[unlikely]]
     {
         *this = other;
     }
@@ -432,9 +432,9 @@ inline BitArray& BitArray::operator*=(const BitArray& other)
     std::fill(mBits.begin(), mBits.end(), 0U);
 
     uint32_t count = 0U;
-    for(uint32_t i = 0U; i < static_cast<uint32_t>(log2(other)); ++i)
+    for(uint32_t i = 0U; i < log2(other); ++i)
     {
-        BLOCK block = other.getBlock(i / 32);
+        BLOCK block = other.getBlock(i / 32U);
         if(block & (1U << (i % 32U)))
         {
             tmp <<= count;
