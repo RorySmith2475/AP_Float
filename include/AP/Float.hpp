@@ -1076,6 +1076,29 @@ inline std::optional<Float> sqrt(const Float& f)
 
 inline std::string to_string(const Float& f, size_t precision)
 {
+    if(f.mState == Float::INF) [[unlikely]]
+    {
+        if(f.mSign == Float::NEGATIVE)
+        {
+            return std::to_string(-std::numeric_limits<double>::infinity());
+        }
+        else
+        {
+            return std::to_string(std::numeric_limits<double>::infinity());
+        }
+    }
+    else if(f.mState == Float::ERROR) [[unlikely]]
+    {
+        if(f.mSign == Float::NEGATIVE)
+        {
+            return std::to_string(-std::numeric_limits<double>::signaling_NaN());
+        }
+        else
+        {
+            return std::to_string(std::numeric_limits<double>::signaling_NaN());
+        }
+    }
+
     std::string whole_str, decimal_str;
     int32_t exp = 0;
     const auto bits = log2(f.mMantissa);
